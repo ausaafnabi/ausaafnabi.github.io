@@ -1,33 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Edit, Trash2, Calendar, Clock } from "lucide-react"
+import { X, Calendar, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn, formatDate } from "@/lib/utils"
 import type { BlogPost } from "@/lib/blog-data"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 
 interface BlogModalProps {
   blog: BlogPost | null
   isOpen: boolean
   onClose: () => void
-  onEdit: () => void
-  onDelete: (id: string) => void
 }
 
-export function BlogModal({ blog, isOpen, onClose, onEdit, onDelete }: BlogModalProps) {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+export function BlogModal({ blog, isOpen, onClose }: BlogModalProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -36,11 +23,6 @@ export function BlogModal({ blog, isOpen, onClose, onEdit, onDelete }: BlogModal
 
   if (!mounted) return null
   if (!blog) return null
-
-  const handleDelete = () => {
-    onDelete(blog.id)
-    setIsDeleteDialogOpen(false)
-  }
 
   return (
     <>
@@ -61,14 +43,6 @@ export function BlogModal({ blog, isOpen, onClose, onEdit, onDelete }: BlogModal
           <div className="flex items-center justify-between border-b px-6 py-4">
             <h2 className="text-lg font-semibold">Blog Post</h2>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={onEdit}>
-                <Edit className="h-4 w-4" />
-                <span className="sr-only">Edit</span>
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => setIsDeleteDialogOpen(true)}>
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Delete</span>
-              </Button>
               <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close</span>
@@ -108,26 +82,6 @@ export function BlogModal({ blog, isOpen, onClose, onEdit, onDelete }: BlogModal
           </ScrollArea>
         </div>
       </div>
-
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the blog post.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }

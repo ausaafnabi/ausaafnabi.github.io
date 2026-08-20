@@ -6,90 +6,91 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabase"
 
-interface Like {
+interface Supporter {
   id: string
   name: string
-  timestamp: number
-  color: string
+  created_at: string
+}
+
+const COLORS = [
+  "bg-red-500",
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-yellow-500",
+  "bg-purple-500",
+  "bg-pink-500",
+  "bg-indigo-500",
+  "bg-teal-500",
+]
+
+function colorFor(id: string) {
+  const index = id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  return COLORS[index % COLORS.length]
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2)
 }
 
 export function LikeWidget() {
   const [name, setName] = useState("")
-  const [likes, setLikes] = useState<Like[]>([])
+  const [website, setWebsite] = useState("") // honeypot, kept empty by real users
+  const [supporters, setSupporters] = useState<Supporter[]>([])
   const [isLiking, setIsLiking] = useState(false)
 
-  // Load likes from localStorage on mount
   useEffect(() => {
-    const storedLikes = localStorage.getItem("portfolio-likes")
-    if (storedLikes) {
-      try {
-        const parsedLikes = JSON.parse(storedLikes) as Like[]
-        // Filter out likes older than 24 hours
-        const recentLikes = parsedLikes.filter((like) => Date.now() - like.timestamp < 24 * 60 * 60 * 1000)
-        setLikes(recentLikes)
-        // Save filtered likes back to localStorage
-        localStorage.setItem("portfolio-likes", JSON.stringify(recentLikes))
-      } catch (error) {
-        console.error("Error parsing likes from localStorage:", error)
-      }
-    }
+    if (!supabase) return
+
+    supabase
+      .from("supporters")
+      .select("id, name, created_at")
+      .order("created_at", { ascending: false })
+      .limit(30)
+      .then(({ data, error }) => {
+        if (!error && data) setSupporters(data)
+      })
   }, [])
 
-  // Generate a random color for the avatar
-  const getRandomColor = () => {
-    const colors = [
-      "bg-red-500",
-      "bg-blue-500",
-      "bg-green-500",
-      "bg-yellow-500",
-      "bg-purple-500",
-      "bg-pink-500",
-      "bg-indigo-500",
-      "bg-teal-500",
-    ]
-    return colors[Math.floor(Math.random() * colors.length)]
-  }
+  const handleLike = async () => {
+    if (!name.trim() || !supabase) return
 
-  // Get initials from name
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2)
-  }
-
-  // Handle like submission
-  const handleLike = () => {
-    if (!name.trim()) return
+    if (website) {
+      // Honeypot field was filled in by a bot; silently drop the submission.
+      setName("")
+      return
+    }
 
     setIsLiking(true)
 
-    // Create new like
-    const newLike: Like = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      timestamp: Date.now(),
-      color: getRandomColor(),
+    const { data, error } = await supabase
+      .from("supporters")
+      .insert({ name: name.trim() })
+      .select("id, name, created_at")
+      .single()
+
+    if (error) {
+      toast({
+        title: "Couldn't add your like",
+        description: error.message.includes("already liked")
+          ? "You already liked this recently."
+          : "Please try again in a moment.",
+        variant: "destructive",
+      })
+    } else if (data) {
+      setSupporters((prev) => [data, ...prev])
+      setName("")
     }
 
-    // Add to likes array
-    const updatedLikes = [...likes, newLike]
-    setLikes(updatedLikes)
-
-    // Save to localStorage
-    localStorage.setItem("portfolio-likes", JSON.stringify(updatedLikes))
-
-    // Reset form
-    setName("")
-
-    // Show animation
-    setTimeout(() => {
-      setIsLiking(false)
-    }, 1500)
+    setTimeout(() => setIsLiking(false), 800)
   }
 
   return (
@@ -107,9 +108,19 @@ export function LikeWidget() {
             onKeyDown={(e) => e.key === "Enter" && handleLike()}
             disabled={isLiking}
           />
+          <input
+            type="text"
+            name="website"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            className="hidden"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
           <Button
             onClick={handleLike}
-            disabled={!name.trim() || isLiking}
+            disabled={!name.trim() || isLiking || !supabase}
             className={cn("transition-all", isLiking && "animate-pulse bg-red-500 hover:bg-red-600")}
           >
             <Heart className={cn("mr-2 h-4 w-4", isLiking && "animate-ping fill-white")} />
@@ -117,20 +128,20 @@ export function LikeWidget() {
           </Button>
         </div>
 
-        {likes.length > 0 && (
+        {supporters.length > 0 && (
           <div className="pt-4">
             <h4 className="text-sm font-medium mb-3">Recent Supporters</h4>
             <div className="flex flex-wrap gap-2">
-              {likes.map((like) => (
+              {supporters.map((supporter) => (
                 <div
-                  key={like.id}
+                  key={supporter.id}
                   className="flex items-center gap-2 bg-muted rounded-full pl-1 pr-3 py-1"
-                  title={`${like.name} liked this portfolio`}
+                  title={`${supporter.name} liked this portfolio`}
                 >
                   <Avatar className="h-6 w-6">
-                    <AvatarFallback className={like.color}>{getInitials(like.name)}</AvatarFallback>
+                    <AvatarFallback className={colorFor(supporter.id)}>{getInitials(supporter.name)}</AvatarFallback>
                   </Avatar>
-                  <span className="text-xs">{like.name}</span>
+                  <span className="text-xs">{supporter.name}</span>
                 </div>
               ))}
             </div>
