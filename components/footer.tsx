@@ -11,7 +11,7 @@ export function Footer() {
           <p className="text-sm text-muted-foreground">
             © {currentYear} {personalData.name}. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground">Built with Next.js, Tailwind CSS, and shadcn/ui</p>
+          {/* <p className="text-xs text-muted-foreground">Built with Next.js, Tailwind CSS, and shadcn/ui</p> */}
         </div>
 
         <div className="flex items-center gap-4">

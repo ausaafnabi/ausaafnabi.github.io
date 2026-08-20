@@ -3,7 +3,8 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Code, Github, Layers, Mail, User, BookOpen, FileText } from "lucide-react"
+import Link from "next/link"
+import { Code, Github, Layers, Mail, User, BookOpen, Braces, Cpu } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -113,12 +114,6 @@ export function PortfolioLayout({ children }: PortfolioLayoutProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={activeSection === "blog"} onClick={() => scrollToSection("blog")}>
-                      <FileText className="h-4 w-4" />
-                      <span>Blog</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
                     <SidebarMenuButton
                       isActive={activeSection === "publications"}
                       onClick={() => scrollToSection("publications")}
@@ -134,6 +129,30 @@ export function PortfolioLayout({ children }: PortfolioLayoutProps) {
                     >
                       <Mail className="h-4 w-4" />
                       <span>Contact</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Tools</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link href="/tools/regex-json/">
+                        <Braces className="h-4 w-4" />
+                        <span>Regex & JSON</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <Link href="/tools/cuda/">
+                        <Cpu className="h-4 w-4" />
+                        <span>CUDA Toolbox</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
