@@ -2,7 +2,6 @@ import { PortfolioLayout } from "@/components/portfolio-layout"
 import { AboutSection } from "@/components/about-section"
 import { SkillsSection } from "@/components/skills-section"
 import { ProjectsSection } from "@/components/projects-section"
-import { BlogSection } from "@/components/blog-section"
 import { PublicationsSection } from "@/components/publications-section"
 import { ContactSection } from "@/components/contact-section"
 import { LikeWidget } from "@/components/like-widget"
@@ -15,7 +14,6 @@ export default function Home() {
         <AboutSection data={personalData} />
         <SkillsSection skills={personalData.skills} />
         <ProjectsSection />
-        <BlogSection />
         <PublicationsSection />
         <div className="grid gap-6 md:grid-cols-2">
           <ContactSection />
